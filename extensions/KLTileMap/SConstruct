@@ -1,0 +1,17 @@
+import os
+
+env = SConscript("../godot-cpp/Sconstruct")
+
+def getSubdirs(abs_path_dir) :  
+    return [ name for name in os.listdir(abs_path_dir) if os.path.isdir(os.path.join(abs_path_dir, name)) and name[0] != '.' ]
+
+sources = Glob("src/*.cpp")
+for path in getSubdirs("src"):
+    sources += Glob(os.path.join("src", path, "*.cpp"))
+
+library = env.SharedLibrary(
+    "bin/libKLTileMap{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+    source=sources,
+)
+
+Default(library)

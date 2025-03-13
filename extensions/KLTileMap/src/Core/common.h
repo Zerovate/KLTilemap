@@ -1,0 +1,10 @@
+#pragma once
+#include <godot_cpp/core/defs.hpp>
+#include <godot_cpp/core/math.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
+#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/variant.hpp>
+#include <godot_cpp/classes/thread.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/classes/time.hpp>
