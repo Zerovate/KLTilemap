@@ -1,14 +1,22 @@
-[gd_scene load_steps=4 format=3 uid="uid://dn5ijnml1my51"]
+[gd_scene load_steps=6 format=3 uid="uid://dn5ijnml1my51"]
 
 [ext_resource type="Script" uid="uid://2p6ddpv01et5" path="res://source/scenes/tile_map_editor.gd" id="1_d1omw"]
 [ext_resource type="PackedScene" uid="uid://b7i5u871oia81" path="res://source/UI/forms/f_tilemap_editor.tscn" id="1_ss6qn"]
 [ext_resource type="Script" uid="uid://dftm1lsy556xi" path="res://source/scenes/camera_2d.gd" id="2_hxoc1"]
+[ext_resource type="Shader" uid="uid://ljks5axnpgut" path="res://source/shaders/tile_data_noise.gdshader" id="2_pdyrx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bkend"]
+shader = ExtResource("2_pdyrx")
+shader_parameter/uv1_scale = 0.1
+shader_parameter/uv1_offset = Vector2(0, 0)
+shader_parameter/vertex_offset = Vector2(0, 0)
 
 [node name="TileMapEditor" type="Node2D"]
 script = ExtResource("1_d1omw")
 
 [node name="BLTileMap" type="BLTileMap" parent="."]
 config_path = "res://assets/environment/tilemap/tile_map.json"
+material = SubResource("ShaderMaterial_bkend")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("2_hxoc1")

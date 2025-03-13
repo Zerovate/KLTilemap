@@ -7,10 +7,12 @@
 #include <godot_cpp/classes/shader_material.hpp>
 #include <godot_cpp/classes/tile_data.hpp>
 #include <godot_cpp/classes/tile_map_layer.hpp>
+#include <godot_cpp/classes/file_access.hpp>
 
 using namespace godot;
 
-void BLTileMap::_bind_methods() {
+void BLTileMap::_bind_methods()
+{
   ClassDB::bind_method(D_METHOD("set_region", "region"),
                        &BLTileMap::set_region);
   ClassDB::bind_method(D_METHOD("get_region"), &BLTileMap::get_region);
@@ -32,7 +34,8 @@ void BLTileMap::_bind_methods() {
   ClassDB::bind_method(D_METHOD("update_layers"), &BLTileMap::update_layers);
 }
 
-Error BLTileMap::init() {
+Error BLTileMap::init()
+{
   if (_config_path.is_empty())
     return ERR_INVALID_PARAMETER;
   auto json = JsonLoader::load(_config_path);
@@ -42,7 +45,8 @@ Error BLTileMap::init() {
     return ERR_INVALID_DATA;
   Dictionary layers_dict = json.get("layers");
   Array layer_order_list = json.get("layer_order");
-  for (int idx = 0; idx < layer_order_list.size(); idx++) {
+  for (int idx = 0; idx < layer_order_list.size(); idx++)
+  {
     String name = layer_order_list[layer_order_list.size() - 1 - idx];
     if (!layers_dict.has(name))
       continue;
@@ -50,9 +54,12 @@ Error BLTileMap::init() {
     if (!layer_prop.has("path"))
       continue;
     String layer_path = layer_prop["path"];
-    if(layer_path.is_relative_path()){
+    if (layer_path.is_relative_path())
+    {
       layer_path = _config_path.get_base_dir().path_join(layer_path);
     }
+    if (!FileAccess::file_exists(layer_path))
+      continue;
     auto terrain = BLTerrain::create(layer_path);
     if (!terrain.is_valid())
       continue;
@@ -62,10 +69,18 @@ Error BLTileMap::init() {
     BLTileMapLayer *new_layer = memnew(BLTileMapLayer);
     new_layer->set_name(name);
     new_layer->set_tile_set(tile_set);
-    if (layer_prop.has("noise_texture") && get_material().is_valid()) {
+    if (layer_prop.has("noise_texture") && get_material().is_valid())
+    {
+      String noise_texture_path = layer_prop["noise_texture"];
+      if (noise_texture_path.is_relative_path())
+      {
+        noise_texture_path =
+            _config_path.get_base_dir().path_join(noise_texture_path);
+      }
       auto texture =
-          ResourceLoader::get_singleton()->load(layer_prop["noise_texture"]);
-      if (!texture.is_null()) {
+          ResourceLoader::get_singleton()->load(noise_texture_path);
+      if (!texture.is_null())
+      {
         Ref<ShaderMaterial> material = get_material()->duplicate();
         material->set_shader_parameter("texture_noise", texture);
         new_layer->set_material(material);
@@ -81,7 +96,8 @@ Error BLTileMap::init() {
   return OK;
 }
 
-void BLTileMap::set_region(const Rect2i &p_region) {
+void BLTileMap::set_region(const Rect2i &p_region)
+{
   _region = p_region;
   auto terrain_region = p_region.grow(2);
   _terrain_img =
@@ -92,7 +108,8 @@ void BLTileMap::set_region(const Rect2i &p_region) {
   _dirty.terrains.clear();
 }
 
-String BLTileMap::get_terrain(const Vector2i &p_coord) const {
+String BLTileMap::get_terrain(const Vector2i &p_coord) const
+{
   auto t = _get_terrain_pixelv(p_coord);
   if (t == 0)
     return "";
@@ -102,9 +119,11 @@ String BLTileMap::get_terrain(const Vector2i &p_coord) const {
 void BLTileMap::set_terrains(const TypedArray<Vector2i> &p_coords,
                              const String &p_terrain,
                              bool p_force /* = false */,
-                             bool p_update_layers /* = true */) {
+                             bool p_update_layers /* = true */)
+{
   ERR_FAIL_COND(!_terrain_index.has(p_terrain));
-  for (auto coord_id = 0; coord_id < p_coords.size(); coord_id++) {
+  for (auto coord_id = 0; coord_id < p_coords.size(); coord_id++)
+  {
     const Vector2i &coord = p_coords[coord_id];
     if (!_region.has_point(coord))
       continue;
@@ -121,17 +140,20 @@ void BLTileMap::set_terrains(const TypedArray<Vector2i> &p_coords,
     update_layers();
 }
 
-TypedArray<String> BLTileMap::get_terrain_names() const {
+TypedArray<String> BLTileMap::get_terrain_names() const
+{
   TypedArray<String> result;
   for (auto pair : _layers)
     result.push_back(pair.value->get_name());
   return result;
 }
 
-void BLTileMap::update_layers() {
+void BLTileMap::update_layers()
+{
   HashMap<String, TypedArray<Vector2i>> pre_dirty_map;
   HashMap<String, TypedArray<Vector2i>> cur_dirty_map;
-  for (auto pair : _dirty.terrains) {
+  for (auto pair : _dirty.terrains)
+  {
     auto coord = pair.key;
     auto terrain_pair = pair.value;
     if (terrain_pair.first != "")
@@ -139,13 +161,15 @@ void BLTileMap::update_layers() {
     if (terrain_pair.second != "")
       cur_dirty_map[terrain_pair.second].push_back(coord);
   }
-  for (auto dirty : pre_dirty_map) {
+  for (auto dirty : pre_dirty_map)
+  {
     auto coords = dirty.value;
     auto layer = _layers[_terrain_index[dirty.key]];
     layer->erase_terrains(coords);
   }
   Vector<Ref<Thread>> threads;
-  for (auto dirty : cur_dirty_map) {
+  for (auto dirty : cur_dirty_map)
+  {
     auto layer = _layers[_terrain_index[dirty.key]];
     auto coords = dirty.value;
     // layer->set_terrains(coords);
@@ -159,6 +183,7 @@ void BLTileMap::update_layers() {
   _dirty.terrains.clear();
 }
 
-int32_t BLTileMap::_get_terrain_pixelv(const Vector2i &p_coord) const {
+int32_t BLTileMap::_get_terrain_pixelv(const Vector2i &p_coord) const
+{
   return _terrain_img->get_pixelv(p_coord - _region.get_position()).get_r8();
 }

@@ -2,37 +2,28 @@
 
 [ext_resource type="Script" uid="uid://bedgcghgru26i" path="res://source/UI/forms/f_tilemap_editor.gd" id="1_oqcdi"]
 
-[node name="TilemapEditor" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
+[node name="TilemapEditor" type="VBoxContainer"]
+anchors_preset = 9
 anchor_bottom = 1.0
-grow_horizontal = 2
+offset_right = 76.0
 grow_vertical = 2
 script = ExtResource("1_oqcdi")
 
-[node name="TileEditor" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_right = 40.0
-grow_vertical = 2
-
-[node name="HeadHFlowContainer" type="HFlowContainer" parent="TileEditor"]
+[node name="HeadHFlowContainer" type="HFlowContainer" parent="."]
 layout_mode = 2
 
-[node name="TabBar" type="TabBar" parent="TileEditor/HeadHFlowContainer"]
+[node name="TabBar" type="TabBar" parent="HeadHFlowContainer"]
 layout_mode = 2
 current_tab = 0
 clip_tabs = false
 tab_count = 1
 tab_0/title = "Terrain"
 
-[node name="Control" type="Control" parent="TileEditor/HeadHFlowContainer"]
+[node name="Control" type="Control" parent="HeadHFlowContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ItemList" type="ItemList" parent="TileEditor"]
+[node name="ItemList" type="ItemList" parent="."]
 layout_mode = 2
 size_flags_vertical = 3
 auto_width = true
