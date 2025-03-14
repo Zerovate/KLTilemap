@@ -10,21 +10,12 @@
 #include <godot_cpp/classes/standard_material3d.hpp>
 #include <godot_cpp/classes/sub_viewport.hpp>
 #include <godot_cpp/classes/viewport_texture.hpp>
+#include <godot_cpp/classes/file_access.hpp>
 
 using namespace godot;
 
-void BLTileMap3D::_bind_methods() {
-  ClassDB::bind_method(D_METHOD("set_config_path", "p_config_path"),
-                       &BLTileMap3D::set_config_path);
-  ClassDB::bind_method(D_METHOD("get_config_path"),
-                       &BLTileMap3D::get_config_path);
-  ADD_PROPERTY(PropertyInfo(Variant::STRING, "config_path"), "set_config_path",
-               "get_config_path");
-  ClassDB::bind_method(D_METHOD("set_region", "p_region"),
-                       &BLTileMap3D::set_region);
-  ClassDB::bind_method(D_METHOD("get_region"), &BLTileMap3D::get_region);
-  ADD_PROPERTY(PropertyInfo(Variant::RECT2I, "region"), "set_region",
-               "get_region");
+void BLTileMap3D::_bind_methods()
+{
   ClassDB::bind_method(D_METHOD("set_meter_per_tile", "p_meter_per_tile"),
                        &BLTileMap3D::set_meter_per_tile);
   ClassDB::bind_method(D_METHOD("get_meter_per_tile"),
@@ -37,18 +28,10 @@ void BLTileMap3D::_bind_methods() {
                        &BLTileMap3D::get_slice_size);
   ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "slice_size"), "set_slice_size",
                "get_slice_size");
-  ClassDB::bind_method(D_METHOD("init"), &BLTileMap3D::init);
-  ClassDB::bind_method(D_METHOD("get_terrain_names"),
-                       &BLTileMap3D::get_terrain_names);
-  ClassDB::bind_method(D_METHOD("get_terrain", "p_coords"),
-                       &BLTileMap3D::get_terrain);
-  ClassDB::bind_method(
-      D_METHOD("set_terrains", "p_coords", "p_terrain", "p_force"),
-      &BLTileMap3D::set_terrains, DEFVAL(false));
-  ClassDB::bind_method(D_METHOD("update"), &BLTileMap3D::update);
 }
 
-Error BLTileMap3D::init() {
+Error BLTileMap3D::init()
+{
   auto json = JsonLoader::load(_config_path);
   if (json.get_type() != Variant::DICTIONARY)
     return ERR_INVALID_DATA;
@@ -58,14 +41,22 @@ Error BLTileMap3D::init() {
   Array layer_order_list = json.get("layer_order");
   HashMap<String, Ref<BLTileSet>> tile_sets;
   HashMap<String, Ref<Material>> noise_materials;
-  for (int idx = 0; idx < layer_order_list.size(); idx++) {
+  for (int idx = 0; idx < layer_order_list.size(); idx++)
+  {
     String name = layer_order_list[layer_order_list.size() - 1 - idx];
     if (!layers_dict.has(name))
       continue;
     Dictionary layer_prop = layers_dict[name];
     if (!layer_prop.has("path"))
       continue;
-    auto terrain = BLTerrain::create(layer_prop["path"]);
+    String layer_path = layer_prop["path"];
+    if (layer_path.is_relative_path())
+    {
+      layer_path = _config_path.get_base_dir().path_join(layer_path);
+    }
+    if (!FileAccess::file_exists(layer_path))
+      continue;
+    auto terrain = BLTerrain::create(layer_path);
     if (!terrain.is_valid())
       continue;
     auto tile_set = BLTileSet::create(terrain);
@@ -73,10 +64,18 @@ Error BLTileMap3D::init() {
       continue;
     tile_sets[name] = tile_set;
     _terrain_layer_index[name] = idx + 1;
-    if (layer_prop.has("noise_texture")) {
+    if (layer_prop.has("noise_texture"))
+    {
+      String noise_texture_path = layer_prop["noise_texture"];
+      if (noise_texture_path.is_relative_path())
+      {
+        noise_texture_path =
+            _config_path.get_base_dir().path_join(noise_texture_path);
+      }
       auto texture =
-          ResourceLoader::get_singleton()->load(layer_prop["noise_texture"]);
-      if (!texture.is_null()) {
+          ResourceLoader::get_singleton()->load(noise_texture_path);
+      if (!texture.is_null())
+      {
         auto shader = ResourceLoader::get_singleton()->load(
             "res://Assets/Shader/tile_data_noise.gdshader");
         Ref<ShaderMaterial> material = memnew(ShaderMaterial);
@@ -93,9 +92,11 @@ Error BLTileMap3D::init() {
   Vector2i tile_size = tile_sets.begin()->value->get_tile_size();
   _slice_tile_shape = _slice_size / tile_size;
   for (int x = _region.position.x; x < _region.position.x + _region.size.x;
-       x += _slice_tile_shape.x) {
+       x += _slice_tile_shape.x)
+  {
     for (int y = _region.position.y; y < _region.position.y + _region.size.y;
-         y += _slice_tile_shape.y) {
+         y += _slice_tile_shape.y)
+    {
       TileMapSlice slice;
       slice.region = Rect2i(x, y, _slice_tile_shape.x, _slice_tile_shape.y);
       Vector2i slice_end = slice.region.get_end();
@@ -127,14 +128,16 @@ Error BLTileMap3D::init() {
                             slice.subviewport->get_texture());
       auto camera = memnew(Camera2D);
       slice.subviewport->add_child(camera);
-      for (auto kv : tile_sets) {
+      for (auto kv : tile_sets)
+      {
         auto terrain_name = kv.key;
         auto tile_set = kv.value;
         BLTileMapLayer *new_layer = memnew(BLTileMapLayer);
         new_layer->set_name(terrain_name);
         new_layer->set_tile_set(tile_set);
         new_layer->set_region(slice.region);
-        if (noise_materials.has(terrain_name)) {
+        if (noise_materials.has(terrain_name))
+        {
           Ref<ShaderMaterial> noise_material =
               noise_materials[terrain_name]->duplicate(true);
           noise_material->set_shader_parameter(
@@ -157,17 +160,8 @@ Error BLTileMap3D::init() {
   return OK;
 }
 
-TypedArray<String> BLTileMap3D::get_terrain_names() const {
-  TypedArray<String> out;
-  for (auto kv : _terrain_layer_index) {
-    if (kv.value == 0)
-      continue;
-    out.append(kv.key);
-  }
-  return out;
-}
-
-String BLTileMap3D::get_terrain(const Vector2i &p_coord) const {
+String BLTileMap3D::get_terrain_name_by_coord(const Vector2i &p_coord) const
+{
   auto t = _get_terrain_pixelv(p_coord);
   if (t == 0 || _slices.is_empty())
     return "";
@@ -176,13 +170,15 @@ String BLTileMap3D::get_terrain(const Vector2i &p_coord) const {
 
 void BLTileMap3D::set_terrains(const TypedArray<Vector2i> &p_coords,
                                const String &p_terrain,
-                               bool p_force /* = false */) {
+                               bool p_force /* = false */)
+{
   ERR_FAIL_COND(!_terrain_layer_index.has(p_terrain));
-  for (auto coord_id = 0; coord_id < p_coords.size(); coord_id++) {
+  for (auto coord_id = 0; coord_id < p_coords.size(); coord_id++)
+  {
     const Vector2i &coord = p_coords[coord_id];
     if (!_region.has_point(coord))
       continue;
-    auto pre_terrain = get_terrain(coord);
+    auto pre_terrain = get_terrain_name_by_coord(coord);
     if (!p_force && pre_terrain == p_terrain)
       continue;
     if (!_dirty.terrains.has(coord))
@@ -194,11 +190,13 @@ void BLTileMap3D::set_terrains(const TypedArray<Vector2i> &p_coords,
   }
 }
 
-void BLTileMap3D::update() {
+void BLTileMap3D::update()
+{
   HashMap<String, HashMap<Vector2i, TypedArray<Vector2i>>> pre_dirty_map;
   HashMap<String, HashMap<Vector2i, TypedArray<Vector2i>>> cur_dirty_map;
   HashSet<Vector2i> changed_slices;
-  for (auto pair : _dirty.terrains) {
+  for (auto pair : _dirty.terrains)
+  {
     auto coord = pair.key;
     auto pos = coord / _slice_tile_shape;
     auto terrain_pair = pair.value;
@@ -208,14 +206,16 @@ void BLTileMap3D::update() {
       cur_dirty_map[terrain_pair.second][pos].push_back(coord);
     auto mod = coord % _slice_tile_shape;
     changed_slices.insert(pos);
-    if (mod.x == 0) {
+    if (mod.x == 0)
+    {
       changed_slices.insert(pos + Vector2i(-1, 0));
       if (mod.y == 0)
         changed_slices.insert(pos + Vector2i(-1, -1));
       if (mod.y == _slice_tile_shape.y - 1)
         changed_slices.insert(pos + Vector2i(-1, 1));
     }
-    if (mod.x == _slice_tile_shape.x - 1) {
+    if (mod.x == _slice_tile_shape.x - 1)
+    {
       changed_slices.insert(pos + Vector2i(1, 0));
       if (mod.y == 0)
         changed_slices.insert(pos + Vector2i(1, -1));
@@ -228,24 +228,30 @@ void BLTileMap3D::update() {
       changed_slices.insert(pos + Vector2i(0, 1));
   }
 
-  for (auto dirty : pre_dirty_map) {
+  for (auto dirty : pre_dirty_map)
+  {
     auto coords = dirty.value;
-    for (auto kv : _slices) {
+    for (auto kv : _slices)
+    {
       auto pos = kv.key;
       auto layer = kv.value.layers[_terrain_layer_index[dirty.key]];
-      for (auto coord_kv : coords) {
+      for (auto coord_kv : coords)
+      {
         auto cur_pos = coord_kv.key;
         layer->erase_terrains(coord_kv.value);
       }
     }
   }
   // Vector<Ref<Thread>> threads;
-  for (auto dirty : cur_dirty_map) {
+  for (auto dirty : cur_dirty_map)
+  {
     auto coords = dirty.value;
-    for (auto slice_kv : _slices) {
+    for (auto slice_kv : _slices)
+    {
       auto slice_pos = slice_kv.key;
       auto layer = slice_kv.value.layers[_terrain_layer_index[dirty.key]];
-      for (auto coord_kv : coords) {
+      for (auto coord_kv : coords)
+      {
         auto cur_pos = coord_kv.key;
         layer->set_terrains(coord_kv.value);
         // Ref<Thread> thread = memnew(Thread);
@@ -257,7 +263,8 @@ void BLTileMap3D::update() {
   // for (auto thread : threads)
   //   thread->wait_to_finish();
   // threads.clear();
-  for (auto pos : changed_slices) {
+  for (auto pos : changed_slices)
+  {
     if (!_slices.has(pos))
       continue;
     _slices[pos].subviewport->set_update_mode(SubViewport::UPDATE_ONCE);

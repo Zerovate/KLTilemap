@@ -1,6 +1,7 @@
 #include "register_types.h"
 #include "terrain.h"
 #include "tile_map.h"
+#include "tile_map_2d.h"
 #include "tile_map_3d.h"
 #include "tile_map_layer.h"
 
@@ -11,11 +12,12 @@ void initialize_tile_map_module(ModuleInitializationLevel p_level)
   if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
     return;
 
-  GDREGISTER_RUNTIME_CLASS(BLTerrain);
-  GDREGISTER_RUNTIME_CLASS(BLTileSet);
-  GDREGISTER_RUNTIME_CLASS(BLTileMapLayer);
-  GDREGISTER_RUNTIME_CLASS(BLTileMap);
-  GDREGISTER_RUNTIME_CLASS(BLTileMap3D);
+  GDREGISTER_CLASS(BLTerrain);
+  GDREGISTER_CLASS(BLTileSet);
+  GDREGISTER_CLASS(BLTileMapLayer);
+  GDREGISTER_ABSTRACT_CLASS(BLTileMap);
+  GDREGISTER_CLASS(BLTileMap2D);
+  GDREGISTER_CLASS(BLTileMap3D);
 }
 
 void uninitialize_tile_map_module(ModuleInitializationLevel p_level)
