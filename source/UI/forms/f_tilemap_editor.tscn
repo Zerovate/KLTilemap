@@ -3,9 +3,13 @@
 [ext_resource type="Script" uid="uid://bedgcghgru26i" path="res://source/UI/forms/f_tilemap_editor.gd" id="1_oqcdi"]
 
 [node name="TilemapEditor" type="VBoxContainer"]
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_right = 76.0
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 72.0
+offset_top = -23.0
+offset_right = 148.0
+offset_bottom = 24.0
 grow_vertical = 2
 script = ExtResource("1_oqcdi")
 
@@ -26,7 +30,9 @@ size_flags_horizontal = 3
 [node name="ItemList" type="ItemList" parent="."]
 layout_mode = 2
 size_flags_vertical = 3
+allow_search = false
 auto_width = true
+auto_height = true
 max_columns = 2
 same_column_width = true
 fixed_icon_size = Vector2i(64, 64)

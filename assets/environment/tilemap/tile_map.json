@@ -1,0 +1,56 @@
+{
+    "layers": {
+        "road": {
+            "path": "terrains/cobblestone.json",
+            "noise_texture": "textures/square.png"
+        },
+        "marsh": {
+            "path": "terrains/marsh.json",
+            "noise_texture": "textures/Ground_noise_marsh.png"
+        },
+        "rocky": {
+            "path": "terrains/rocky.json",
+            "noise_texture": "textures/noise_rocky.png"
+        },
+        "savanna": {
+            "path": "terrains/yellowgrass.json",
+            "noise_texture": "textures/Ground_noise_grass_detail.png"
+        },
+        "forest": {
+            "path": "terrains/forest.json",
+            "noise_texture": "textures/Ground_noise.png"
+        },
+        "grass": {
+            "path": "terrains/grass.json",
+            "noise_texture": "textures/Ground_noise.png"
+        },
+        "dirt": {
+            "path": "terrains/dirt.json",
+            "noise_texture": "textures/Ground_noise_dirt.png"
+        },
+        "woodfloor": {
+            "path": "terrains/blocky.json",
+            "noise_texture": "textures/noise_woodfloor.png"
+        },
+        "checker": {
+            "path": "terrains/blocky.json",
+            "noise_texture": "textures/noise_checker.png"
+        },
+        "trim": {
+            "path": "terrains/cave.json",
+            "noise_texture": "textures/noise_ruinstileglow.png"
+        }
+    },
+    "layer_order": [
+        "trim",
+        "checker",
+        "woodfloor",
+        "dirt",
+        "grass",
+        "forest",
+        "savanna",
+        "rocky",
+        "marsh",
+        "road"
+    ]
+}

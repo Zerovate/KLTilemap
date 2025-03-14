@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://euaac1onfduu"]
+
+[ext_resource type="Script" uid="uid://c4t3frnhhaub6" path="res://source/scenes/tilemap_3d_editor.gd" id="1_lnlii"]
+[ext_resource type="PackedScene" uid="uid://cyc774gxa1h63" path="res://source/UI/forms/f_tilemap_3d_editor.tscn" id="2_tgsgt"]
+
+[sub_resource type="Environment" id="Environment_lnlii"]
+tonemap_white = 1.19
+
+[node name="Tilemap3dEditor" type="Node3D"]
+script = ExtResource("1_lnlii")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lnlii")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.660211, 0.75108, 0, -0.75108, 0.660211, 0, 4.8976, 7.80768)
+
+[node name="BLTileMap3D" type="BLTileMap3D" parent="."]
+config_path = "res://assets/environment/tilemap/tile_map.json"
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 10)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="FTilemap3dEditor" parent="CanvasLayer" instance=ExtResource("2_tgsgt")]

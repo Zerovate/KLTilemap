@@ -1,3 +1,13 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+*.uid
+*.pdb
+*.dll
+*.exp
+*.ilk
+*.lib
+*.obj
+*.import
+*.dblite

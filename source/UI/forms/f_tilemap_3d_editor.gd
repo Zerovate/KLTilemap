@@ -1,7 +1,8 @@
-extends Control
+extends PanelContainer
 
-@export var camera:Camera2D = null
-@onready var _itemlist :ItemList = $ItemList
+@export var camera: Camera3D
+
+@onready var _itemlist :ItemList = $VBoxContainer/ItemList
 var _tilemap :BLTileMap
 
 func load_tilemap(tilemap: BLTileMap):

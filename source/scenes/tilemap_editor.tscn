@@ -1,0 +1,27 @@
+[gd_scene load_steps=6 format=3 uid="uid://dn5ijnml1my51"]
+
+[ext_resource type="Script" uid="uid://2p6ddpv01et5" path="res://source/scenes/tilemap_editor.gd" id="1_hw840"]
+[ext_resource type="Shader" uid="uid://ljks5axnpgut" path="res://source/shaders/tile_data_noise.gdshader" id="2_hw840"]
+[ext_resource type="Script" uid="uid://dftm1lsy556xi" path="res://source/scenes/camera_2d.gd" id="3_kte61"]
+[ext_resource type="PackedScene" uid="uid://b7i5u871oia81" path="res://source/UI/forms/f_tilemap_editor.tscn" id="4_edbcx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_caq0h"]
+shader = ExtResource("2_hw840")
+shader_parameter/uv1_scale = 1.0
+shader_parameter/uv1_offset = Vector2(0, 0)
+shader_parameter/vertex_offset = Vector2(0, 0)
+
+[node name="TileMapEditor" type="Node2D"]
+script = ExtResource("1_hw840")
+
+[node name="BLTileMap2D" type="BLTileMap2D" parent="."]
+config_path = "res://assets/environment/tilemap/tile_map.json"
+material = SubResource("ShaderMaterial_caq0h")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("3_kte61")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TilemapEditor" parent="CanvasLayer" node_paths=PackedStringArray("camera") instance=ExtResource("4_edbcx")]
+camera = NodePath("../../Camera2D")
