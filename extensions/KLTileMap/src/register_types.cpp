@@ -7,38 +7,36 @@
 
 using namespace godot;
 
-void initialize_tile_map_module(ModuleInitializationLevel p_level)
-{
-  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
-    return;
+void initialize_tile_map_module(ModuleInitializationLevel p_level) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+		return;
+	}
 
-  GDREGISTER_CLASS(BLTerrain);
-  GDREGISTER_CLASS(BLTileSet);
-  GDREGISTER_CLASS(BLTileMapLayer);
-  GDREGISTER_ABSTRACT_CLASS(BLTileMap);
-  GDREGISTER_CLASS(BLTileMap2D);
-  GDREGISTER_CLASS(BLTileMap3D);
+	GDREGISTER_CLASS(BLTerrain);
+	GDREGISTER_CLASS(BLTileSet);
+	GDREGISTER_CLASS(BLTileMapLayer);
+	GDREGISTER_ABSTRACT_CLASS(BLTileMap);
+	GDREGISTER_CLASS(BLTileMap2D);
+	GDREGISTER_CLASS(BLTileMap3D);
 }
 
-void uninitialize_tile_map_module(ModuleInitializationLevel p_level)
-{
-  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
-    return;
+void uninitialize_tile_map_module(ModuleInitializationLevel p_level) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+		return;
+	}
 }
 
-extern "C"
-{
-  GDExtensionBool GDE_EXPORT
-  KLTileMap_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
-                         GDExtensionClassLibraryPtr *p_library,
-                         GDExtensionInitialization *r_initialization)
-  {
-    GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library,
-                                            r_initialization);
-    init_obj.register_initializer(initialize_tile_map_module);
-    init_obj.register_terminator(uninitialize_tile_map_module);
-    init_obj.set_minimum_library_initialization_level(
-        MODULE_INITIALIZATION_LEVEL_SCENE);
-    return init_obj.init();
-  }
+extern "C" {
+GDExtensionBool GDE_EXPORT
+KLTileMap_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
+		GDExtensionClassLibraryPtr *p_library,
+		GDExtensionInitialization *r_initialization) {
+	GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library,
+			r_initialization);
+	init_obj.register_initializer(initialize_tile_map_module);
+	init_obj.register_terminator(uninitialize_tile_map_module);
+	init_obj.set_minimum_library_initialization_level(
+			MODULE_INITIALIZATION_LEVEL_SCENE);
+	return init_obj.init();
+}
 }

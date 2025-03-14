@@ -5,5 +5,5 @@ using namespace godot;
 
 class JsonLoader {
 public:
-  static Variant load(const String &path);
+	static Variant load(const String &path);
 };
