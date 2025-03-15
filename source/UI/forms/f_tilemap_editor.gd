@@ -40,8 +40,6 @@ func _unhandled_input(event: InputEvent) -> void:
     if paint or erase:
         var item_idx := selected[0]
         var terrain_name = _itemlist.get_item_text(item_idx)
-        var layer = _tilemap.get_layer(terrain_name)
         var map_pos = camera.get_canvas_transform().affine_inverse() * mouse_pos
-        var local_pos = layer.to_local(map_pos)
-        _tilemap.set_terrains([layer.local_to_map(local_pos)], "" if erase else terrain_name)
+        _tilemap.set_terrains([_tilemap.get_tile_coords(map_pos)], "" if erase else terrain_name)
         _tilemap.update()

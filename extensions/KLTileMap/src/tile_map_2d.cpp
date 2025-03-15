@@ -51,7 +51,7 @@ Error BLTileMap2D::init() {
 		BLTileMapLayer *new_layer = memnew(BLTileMapLayer);
 		new_layer->set_name(name);
 		new_layer->set_tile_set(tile_set);
-		if (layer_prop.has("noise_texture") && get_material().is_valid()) {
+		if (layer_prop.has("noise_texture") && _noise_material.is_valid()) {
 			String noise_texture_path = layer_prop["noise_texture"];
 			if (noise_texture_path.is_relative_path()) {
 				noise_texture_path =
@@ -60,8 +60,9 @@ Error BLTileMap2D::init() {
 			auto texture =
 					ResourceLoader::get_singleton()->load(noise_texture_path);
 			if (!texture.is_null()) {
-				Ref<ShaderMaterial> material = get_material()->duplicate();
+				Ref<ShaderMaterial> material = _noise_material->duplicate();
 				material->set_shader_parameter("texture_noise", texture);
+				material->set_shader_parameter("uv1_scale", 0.1);
 				new_layer->set_material(material);
 			}
 		}

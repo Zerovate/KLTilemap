@@ -8,7 +8,7 @@
 [sub_resource type="Environment" id="Environment_lnlii"]
 tonemap_white = 1.19
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_jnrrg"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eh5dg"]
 shader = ExtResource("2_eh5dg")
 shader_parameter/uv1_scale = 1.0
 shader_parameter/uv1_offset = Vector2(0, 0)
@@ -25,7 +25,7 @@ transform = Transform3D(1, 0, 0, 0, 0.660211, 0.75108, 0, -0.75108, 0.660211, 0,
 
 [node name="BLTileMap3D" type="BLTileMap3D" parent="."]
 config_path = "res://assets/environment/tilemap/tile_map.json"
-material = SubResource("ShaderMaterial_jnrrg")
+noise_material = SubResource("ShaderMaterial_eh5dg")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 10)

@@ -6,11 +6,14 @@
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/classes/plane_mesh.hpp>
+#include <godot_cpp/classes/rendering_server.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/shader_material.hpp>
 #include <godot_cpp/classes/standard_material3d.hpp>
 #include <godot_cpp/classes/sub_viewport.hpp>
 #include <godot_cpp/classes/viewport_texture.hpp>
+#include <godot_cpp/classes/window.hpp>
 
 using namespace godot;
 
@@ -52,7 +55,7 @@ Error BLTileMap3D::init() {
 		}
 		tile_sets[name] = tile_set;
 		_terrain_layer_index[name] = idx + 1;
-		if (layer_prop.has("noise_texture")) {
+		if (layer_prop.has("noise_texture") && _noise_material.is_valid()) {
 			String noise_texture_path = layer_prop["noise_texture"];
 			if (noise_texture_path.is_relative_path()) {
 				noise_texture_path =
@@ -61,10 +64,7 @@ Error BLTileMap3D::init() {
 			auto texture =
 					ResourceLoader::get_singleton()->load(noise_texture_path);
 			if (!texture.is_null()) {
-				auto shader = ResourceLoader::get_singleton()->load(
-						"uid://ljks5axnpgut");
-				Ref<ShaderMaterial> material = memnew(ShaderMaterial);
-				material->set_shader(shader);
+				Ref<ShaderMaterial> material = _noise_material->duplicate();
 				material->set_shader_parameter("texture_noise", texture);
 				noise_materials[name] = material;
 			}
@@ -192,7 +192,7 @@ void BLTileMap3D::update() {
 	HashSet<Vector2i> changed_slices;
 	for (auto pair : _dirty.terrains) {
 		auto coord = pair.key;
-		auto pos = coord / _slice_tile_shape;
+		Vector2i pos = (Vector2(coord) / Vector2(_slice_tile_shape)).floor();
 		auto terrain_pair = pair.value;
 		if (terrain_pair.first != "") {
 			pre_dirty_map[terrain_pair.first][pos].push_back(coord);
@@ -200,7 +200,7 @@ void BLTileMap3D::update() {
 		if (terrain_pair.second != "") {
 			cur_dirty_map[terrain_pair.second][pos].push_back(coord);
 		}
-		auto mod = coord % _slice_tile_shape;
+		auto mod = ((coord % _slice_tile_shape) + _slice_tile_shape) % _slice_tile_shape;
 		changed_slices.insert(pos);
 		if (mod.x == 0) {
 			changed_slices.insert(pos + Vector2i(-1, 0));
@@ -261,7 +261,7 @@ void BLTileMap3D::update() {
 		if (!_tile_slices.has(pos)) {
 			continue;
 		}
-		_tile_slices[pos].subviewport->call_deferred("set_update_mode", SubViewport::UPDATE_ONCE);
+		_tile_slices[pos].subviewport->set_update_mode(SubViewport::UPDATE_ONCE);
 	}
 	_dirty.terrains.clear();
 }
@@ -270,8 +270,7 @@ Vector2i BLTileMap3D::get_tile_coords(const Vector2 &p_pixel_coords) const {
 	if (_tile_slices.is_empty()) {
 		return Vector2i();
 	}
-	Vector2 pos = p_pixel_coords / _meter_per_tile;
-	return pos;
+	return Vector2i((Vector2(p_pixel_coords) / _meter_per_tile).floor());
 }
 
 void BLTileMap3D::_bind_methods() {

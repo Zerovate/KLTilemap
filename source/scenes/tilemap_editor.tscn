@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://dftm1lsy556xi" path="res://source/scenes/camera_2d.gd" id="3_kte61"]
 [ext_resource type="PackedScene" uid="uid://b7i5u871oia81" path="res://source/UI/forms/f_tilemap_editor.tscn" id="4_edbcx"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_caq0h"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hw840"]
 shader = ExtResource("2_hw840")
 shader_parameter/uv1_scale = 1.0
 shader_parameter/uv1_offset = Vector2(0, 0)
@@ -16,7 +16,7 @@ script = ExtResource("1_hw840")
 
 [node name="BLTileMap2D" type="BLTileMap2D" parent="."]
 config_path = "res://assets/environment/tilemap/tile_map.json"
-material = SubResource("ShaderMaterial_caq0h")
+noise_material = SubResource("ShaderMaterial_hw840")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("3_kte61")

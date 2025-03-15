@@ -23,6 +23,9 @@ void BLTileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_region"), &BLTileMap::get_region);
 	ADD_PROPERTY(PropertyInfo(Variant::RECT2I, "region"), "set_region",
 			"get_region");
+	ClassDB::bind_method(D_METHOD("set_noise_material", "p_material"), &BLTileMap::set_noise_material);
+	ClassDB::bind_method(D_METHOD("get_noise_material"), &BLTileMap::get_noise_material);
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "noise_material", PROPERTY_HINT_RESOURCE_TYPE, "Material"), "set_noise_material", "get_noise_material");
 
 	ClassDB::bind_method(D_METHOD("init"), &BLTileMap::init);
 	ClassDB::bind_method(D_METHOD("get_terrain_names"),

@@ -30,4 +30,4 @@ auto_width = true
 auto_height = true
 max_columns = 2
 icon_mode = 0
-icon_scale = 0.5
+fixed_icon_size = Vector2i(64, 64)
