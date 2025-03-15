@@ -106,7 +106,6 @@ Vector2i BLTileMap2D::get_tile_coords(const Vector2 &p_pixel_coords) const {
 	auto layer = _layers.begin()->value;
 	auto local_pos = layer->to_local(p_pixel_coords);
 	auto map_pos = layer->local_to_map(local_pos);
-	UtilityFunctions::print(local_pos, ", ", map_pos);
 	return map_pos;
 }
 
