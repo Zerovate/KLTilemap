@@ -1,7 +1,7 @@
 extends Node3D
 
-@onready var _tile_map:BLTileMap3D=$BLTileMap3D
-@onready var _tile_editor :Control= $CanvasLayer/FTilemap3dEditor
+@onready var _tile_map: BLTileMap3D = $BLTileMap3D
+@onready var _tile_editor: Control = $CanvasLayer/FTilemap3dEditor
 
 func _ready() -> void:
     _tile_map.init()

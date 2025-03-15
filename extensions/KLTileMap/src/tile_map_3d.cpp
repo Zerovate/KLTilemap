@@ -14,21 +14,6 @@
 
 using namespace godot;
 
-void BLTileMap3D::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_meter_per_tile", "p_meter_per_tile"),
-			&BLTileMap3D::set_meter_per_tile);
-	ClassDB::bind_method(D_METHOD("get_meter_per_tile"),
-			&BLTileMap3D::get_meter_per_tile);
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "meter_per_tile"),
-			"set_meter_per_tile", "get_meter_per_tile");
-	ClassDB::bind_method(D_METHOD("set_slice_size", "p_slice_size"),
-			&BLTileMap3D::set_slice_size);
-	ClassDB::bind_method(D_METHOD("get_slice_size"),
-			&BLTileMap3D::get_slice_size);
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "slice_size"), "set_slice_size",
-			"get_slice_size");
-}
-
 Error BLTileMap3D::init() {
 	auto json = JsonLoader::load(_config_path);
 	if (json.get_type() != Variant::DICTIONARY) {
@@ -77,7 +62,7 @@ Error BLTileMap3D::init() {
 					ResourceLoader::get_singleton()->load(noise_texture_path);
 			if (!texture.is_null()) {
 				auto shader = ResourceLoader::get_singleton()->load(
-						"res://Assets/Shader/tile_data_noise.gdshader");
+						"uid://ljks5axnpgut");
 				Ref<ShaderMaterial> material = memnew(ShaderMaterial);
 				material->set_shader(shader);
 				material->set_shader_parameter("texture_noise", texture);
@@ -91,26 +76,26 @@ Error BLTileMap3D::init() {
 		return ERR_INVALID_DATA;
 	}
 	Vector2i tile_size = tile_sets.begin()->value->get_tile_size();
-	_slice_tile_shape = _slice_size / tile_size;
+	_slice_tile_shape = _slice_pixel_size / tile_size;
 	for (int x = _region.position.x; x < _region.position.x + _region.size.x;
 			x += _slice_tile_shape.x) {
 		for (int y = _region.position.y; y < _region.position.y + _region.size.y;
 				y += _slice_tile_shape.y) {
 			TileMapSlice slice;
-			slice.region = Rect2i(x, y, _slice_tile_shape.x, _slice_tile_shape.y);
-			Vector2i slice_end = slice.region.get_end();
+			slice.pixel_region = Rect2i(x, y, _slice_tile_shape.x, _slice_tile_shape.y);
+			Vector2i slice_end = slice.pixel_region.get_end();
 			if (slice_end.x > _region.position.x + _region.size.x) {
 				slice_end.x = _region.position.x + _region.size.x;
 			}
 			if (slice_end.y > _region.position.y + _region.size.y) {
 				slice_end.y = _region.position.y + _region.size.y;
 			}
-			slice.region.set_end(slice_end);
+			slice.pixel_region.set_end(slice_end);
 			slice.mesh_instance = memnew(MeshInstance3D);
 			Ref<PlaneMesh> mesh = memnew(PlaneMesh);
-			mesh->set_size(Vector2(slice.region.size) * _meter_per_tile);
+			mesh->set_size(Vector2(slice.pixel_region.size) * _meter_per_tile);
 			slice.mesh_instance->set_mesh(mesh);
-			Vector2 slice_center = slice.region.get_center() * _meter_per_tile;
+			Vector2 slice_center = slice.pixel_region.get_center() * _meter_per_tile;
 			slice.mesh_instance->set_position(
 					Vector3(slice_center.x, 0, slice_center.y));
 			Ref<StandardMaterial3D> material = memnew(StandardMaterial3D);
@@ -120,7 +105,7 @@ Error BLTileMap3D::init() {
 			slice.mesh_instance->set_material_override(material);
 			add_child(slice.mesh_instance);
 			slice.subviewport = memnew(SubViewport);
-			slice.subviewport->set_size(_slice_size);
+			slice.subviewport->set_size(_slice_pixel_size);
 			slice.subviewport->set_update_mode(SubViewport::UPDATE_ONCE);
 			slice.subviewport->set_disable_3d(true);
 			slice.subviewport->set_disable_input(true);
@@ -135,12 +120,12 @@ Error BLTileMap3D::init() {
 				BLTileMapLayer *new_layer = memnew(BLTileMapLayer);
 				new_layer->set_name(terrain_name);
 				new_layer->set_tile_set(tile_set);
-				new_layer->set_region(slice.region);
+				new_layer->set_region(slice.pixel_region);
 				if (noise_materials.has(terrain_name)) {
 					Ref<ShaderMaterial> noise_material =
 							noise_materials[terrain_name]->duplicate(true);
 					noise_material->set_shader_parameter(
-							"vertex_offset", slice.region.get_center() * tile_size);
+							"vertex_offset", slice.pixel_region.get_center() * tile_size);
 					noise_material->set_shader_parameter("uv1_scale", 0.1);
 					new_layer->set_material(noise_material);
 				}
@@ -148,7 +133,7 @@ Error BLTileMap3D::init() {
 				slice.subviewport->add_child(new_layer);
 			}
 			Vector2i pos = Vector2i(x, y) / _slice_tile_shape;
-			_slices[pos] = slice;
+			_tile_slices[pos] = slice;
 		}
 	}
 	auto terrain_region = _region.grow(2);
@@ -161,10 +146,21 @@ Error BLTileMap3D::init() {
 
 String BLTileMap3D::get_terrain_name_by_coord(const Vector2i &p_coord) const {
 	auto t = _get_terrain_pixelv(p_coord);
-	if (t == 0 || _slices.is_empty()) {
+	if (t == 0 || _tile_slices.is_empty()) {
 		return "";
 	}
-	return _slices.begin()->value.layers[t]->get_name();
+	return _tile_slices.begin()->value.layers[t]->get_name();
+}
+
+Ref<BLTerrain> BLTileMap3D::get_terrain(const String &p_name) const {
+	if (_tile_slices.is_empty()) {
+		return Ref<BLTerrain>();
+	}
+	auto layer = _tile_slices.begin()->value.layers[_terrain_layer_index[p_name]];
+	if (!layer) {
+		return Ref<BLTerrain>();
+	}
+	return Object::cast_to<BLTileSet>(layer->get_tile_set().ptr())->get_terrain();
 }
 
 void BLTileMap3D::set_terrains(const TypedArray<Vector2i> &p_coords,
@@ -234,7 +230,7 @@ void BLTileMap3D::update() {
 
 	for (auto dirty : pre_dirty_map) {
 		auto coords = dirty.value;
-		for (auto kv : _slices) {
+		for (auto kv : _tile_slices) {
 			auto pos = kv.key;
 			auto layer = kv.value.layers[_terrain_layer_index[dirty.key]];
 			for (auto coord_kv : coords) {
@@ -246,7 +242,7 @@ void BLTileMap3D::update() {
 	// Vector<Ref<Thread>> threads;
 	for (auto dirty : cur_dirty_map) {
 		auto coords = dirty.value;
-		for (auto slice_kv : _slices) {
+		for (auto slice_kv : _tile_slices) {
 			auto slice_pos = slice_kv.key;
 			auto layer = slice_kv.value.layers[_terrain_layer_index[dirty.key]];
 			for (auto coord_kv : coords) {
@@ -262,10 +258,35 @@ void BLTileMap3D::update() {
 	//   thread->wait_to_finish();
 	// threads.clear();
 	for (auto pos : changed_slices) {
-		if (!_slices.has(pos)) {
+		if (!_tile_slices.has(pos)) {
 			continue;
 		}
-		_slices[pos].subviewport->set_update_mode(SubViewport::UPDATE_ONCE);
+		_tile_slices[pos].subviewport->call_deferred("set_update_mode", SubViewport::UPDATE_ONCE);
 	}
 	_dirty.terrains.clear();
+}
+
+Vector2i BLTileMap3D::get_tile_coords(const Vector2 &p_pixel_coords) const {
+	if (_tile_slices.is_empty()) {
+		return Vector2i();
+	}
+	Vector2 pos = p_pixel_coords / _meter_per_tile;
+	return pos;
+}
+
+void BLTileMap3D::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_meter_per_tile", "p_meter_per_tile"),
+			&BLTileMap3D::set_meter_per_tile);
+	ClassDB::bind_method(D_METHOD("get_meter_per_tile"),
+			&BLTileMap3D::get_meter_per_tile);
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "meter_per_tile"),
+			"set_meter_per_tile", "get_meter_per_tile");
+	ClassDB::bind_method(D_METHOD("set_slice_size", "p_slice_size"),
+			&BLTileMap3D::set_slice_size);
+	ClassDB::bind_method(D_METHOD("get_slice_size"),
+			&BLTileMap3D::get_slice_size);
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "slice_size"), "set_slice_size",
+			"get_slice_size");
+
+	ClassDB::bind_method(D_METHOD("get_slice_tile_shape"), &BLTileMap3D::get_slice_tile_shape);
 }

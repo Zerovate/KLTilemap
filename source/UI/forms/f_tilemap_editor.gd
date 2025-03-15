@@ -1,16 +1,14 @@
 extends Control
 
-@export var camera:Camera2D = null
-@onready var _itemlist :ItemList = $ItemList
-var _tilemap :BLTileMap
+@export var camera: Camera2D = null
+@onready var _itemlist: ItemList = $ItemList
+var _tilemap: BLTileMap
 
 func load_tilemap(tilemap: BLTileMap):
     _tilemap = tilemap
     _itemlist.clear()
     for terrain_name in tilemap.get_terrain_names():
-        var tile_layer :BLTileMapLayer= tilemap.get_layer(terrain_name)
-        var tile_set :BLTileSet= tile_layer.tile_set
-        var terrain :BLTerrain= tile_set.get_terrain()
+        var terrain: BLTerrain = tilemap.get_terrain(terrain_name)
         _itemlist.add_item(terrain_name, terrain.get_icon(), true)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -19,8 +17,8 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     var paint = false
     var erase = false
-    var mouse_pos:Vector2
-    var mb :InputEventMouseButton = event as InputEventMouseButton
+    var mouse_pos: Vector2
+    var mb: InputEventMouseButton = event as InputEventMouseButton
     if mb != null and mb.is_pressed():
         var index = mb.get_button_index()
         match index:

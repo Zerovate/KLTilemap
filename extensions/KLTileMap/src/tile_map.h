@@ -36,6 +36,10 @@ public:
     ) = 0;
     
     virtual void update() = 0;
+
+    virtual Ref<BLTerrain> get_terrain(const String& p_name) const = 0;
+
+    virtual Vector2i get_tile_coords(const Vector2& p_pixel_coords) const = 0;
     //endregion
 
 protected:

@@ -1,10 +1,18 @@
-[gd_scene load_steps=4 format=3 uid="uid://euaac1onfduu"]
+[gd_scene load_steps=7 format=3 uid="uid://euaac1onfduu"]
 
 [ext_resource type="Script" uid="uid://c4t3frnhhaub6" path="res://source/scenes/tilemap_3d_editor.gd" id="1_lnlii"]
+[ext_resource type="Shader" uid="uid://ljks5axnpgut" path="res://source/shaders/tile_data_noise.gdshader" id="2_eh5dg"]
 [ext_resource type="PackedScene" uid="uid://cyc774gxa1h63" path="res://source/UI/forms/f_tilemap_3d_editor.tscn" id="2_tgsgt"]
+[ext_resource type="Script" uid="uid://0ffdoikn8csb" path="res://source/scenes/camera_3d.gd" id="2_ug5ok"]
 
 [sub_resource type="Environment" id="Environment_lnlii"]
 tonemap_white = 1.19
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jnrrg"]
+shader = ExtResource("2_eh5dg")
+shader_parameter/uv1_scale = 1.0
+shader_parameter/uv1_offset = Vector2(0, 0)
+shader_parameter/vertex_offset = Vector2(0, 0)
 
 [node name="Tilemap3dEditor" type="Node3D"]
 script = ExtResource("1_lnlii")
@@ -17,10 +25,13 @@ transform = Transform3D(1, 0, 0, 0, 0.660211, 0.75108, 0, -0.75108, 0.660211, 0,
 
 [node name="BLTileMap3D" type="BLTileMap3D" parent="."]
 config_path = "res://assets/environment/tilemap/tile_map.json"
+material = SubResource("ShaderMaterial_jnrrg")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 10)
+script = ExtResource("2_ug5ok")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="FTilemap3dEditor" parent="CanvasLayer" instance=ExtResource("2_tgsgt")]
+[node name="FTilemap3dEditor" parent="CanvasLayer" node_paths=PackedStringArray("camera") instance=ExtResource("2_tgsgt")]
+camera = NodePath("../../Camera3D")

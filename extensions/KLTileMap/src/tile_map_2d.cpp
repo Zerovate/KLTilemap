@@ -90,6 +90,25 @@ String BLTileMap2D::get_terrain_name_by_coord(const Vector2i &p_coord) const {
 	return _layers[t]->get_name();
 }
 
+Ref<BLTerrain> BLTileMap2D::get_terrain(const String &p_name) const {
+	if (!_terrain_layer_index.has(p_name)) {
+		return nullptr;
+	}
+	auto layer = _layers[_terrain_layer_index[p_name]];
+	return Object::cast_to<BLTileSet>(layer->get_tile_set().ptr())->get_terrain();
+}
+
+Vector2i BLTileMap2D::get_tile_coords(const Vector2 &p_pixel_coords) const {
+	if (_layers.is_empty()) {
+		return Vector2i();
+	}
+	auto layer = _layers.begin()->value;
+	auto local_pos = layer->to_local(p_pixel_coords);
+	auto map_pos = layer->local_to_map(local_pos);
+	UtilityFunctions::print(local_pos, ", ", map_pos);
+	return map_pos;
+}
+
 void BLTileMap2D::set_terrains(const TypedArray<Vector2i> &p_coords,
 		const String &p_terrain,
 		bool p_force /* = false */) {

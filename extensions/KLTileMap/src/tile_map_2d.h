@@ -29,6 +29,10 @@ public:
     ) final;
     
     void update() final;
+
+    Ref<BLTerrain> get_terrain(const String& p_name) const final;
+
+    Vector2i get_tile_coords(const Vector2& p_pixel_coords) const final;
     //endregion
 
     //region Layer Management

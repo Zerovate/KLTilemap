@@ -33,4 +33,6 @@ void BLTileMap::_bind_methods() {
 			D_METHOD("set_terrains", "p_coords", "p_terrain", "p_force"),
 			&BLTileMap::set_terrains, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("update"), &BLTileMap::update);
+	ClassDB::bind_method(D_METHOD("get_terrain", "p_name"), &BLTileMap::get_terrain);
+	ClassDB::bind_method(D_METHOD("get_tile_coords", "p_pixel_coords"), &BLTileMap::get_tile_coords);
 }

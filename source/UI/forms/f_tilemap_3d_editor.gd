@@ -2,16 +2,14 @@ extends PanelContainer
 
 @export var camera: Camera3D
 
-@onready var _itemlist :ItemList = $VBoxContainer/ItemList
-var _tilemap :BLTileMap
+@onready var _itemlist: ItemList = $VBoxContainer/ItemList
+var _tilemap: BLTileMap
 
 func load_tilemap(tilemap: BLTileMap):
     _tilemap = tilemap
     _itemlist.clear()
     for terrain_name in tilemap.get_terrain_names():
-        var tile_layer :BLTileMapLayer= tilemap.get_layer(terrain_name)
-        var tile_set :BLTileSet= tile_layer.tile_set
-        var terrain :BLTerrain= tile_set.get_terrain()
+        var terrain: BLTerrain = tilemap.get_terrain(terrain_name)
         _itemlist.add_item(terrain_name, terrain.get_icon(), true)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -20,8 +18,8 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     var paint = false
     var erase = false
-    var mouse_pos:Vector2
-    var mb :InputEventMouseButton = event as InputEventMouseButton
+    var mouse_pos: Vector2
+    var mb: InputEventMouseButton = event as InputEventMouseButton
     if mb != null and mb.is_pressed():
         var index = mb.get_button_index()
         match index:
@@ -41,10 +39,22 @@ func _unhandled_input(event: InputEvent) -> void:
             erase = true
             mouse_pos = mm.get_position()
     if paint or erase:
+        var ray_origin = camera.project_ray_origin(mouse_pos)
+        var ray_dir = camera.project_ray_normal(mouse_pos)
+        if ray_dir.y == 0:
+            return
+        var t = - ray_origin.y / ray_dir.y
+        if t < 0:
+            return
+        var hit_point = ray_origin + ray_dir * t
+        var tile_pos = _tilemap.get_tile_coords(Vector2(hit_point.x, hit_point.z))
+
         var item_idx := selected[0]
         var terrain_name = _itemlist.get_item_text(item_idx)
-        var layer = _tilemap.get_layer(terrain_name)
-        var map_pos = camera.get_canvas_transform().affine_inverse() * mouse_pos
-        var local_pos = layer.to_local(map_pos)
-        _tilemap.set_terrains([layer.local_to_map(local_pos)], "" if erase else terrain_name)
+        _tilemap.set_terrains([tile_pos], "" if erase else terrain_name)
         _tilemap.update()
+        # var layer = _tilemap.get_layer(terrain_name)
+        # var map_pos = camera.get_canvas_transform().affine_inverse() * mouse_pos
+        # var local_pos = layer.to_local(map_pos)
+        # _tilemap.set_terrains([layer.local_to_map(local_pos)], "" if erase else terrain_name)
+        # _tilemap.update()
